@@ -1,19 +1,30 @@
-const searchContainer = document.querySelector('search-container');
+const searchContainer = document.querySelector('.search-container');
 const gallery = document.getElementById('gallery');
 const cards = document.getElementsByClassName('card');
 const body = document.querySelector('body');
 
+const searchContainerHTML = `
+    <form action="#" method="get">
+        <input type="search" id="search-input" class="search-input" placeholder="Search...">
+        <input type="submit" value="&#x1F50D;" id="search-submit" class="search-submit">
+    </form>`
+searchContainer.insertAdjacentHTML('beforeend', searchContainerHTML);
+
+const searchInput = document.getElementById('search-input');
+
 fetch('https://randomuser.me/api/?results=12&nat=us')
     .then(res => res.json())
-    
     .then(data => {
-        console.log(data.results)
-        displayUsers(data)
+        displayUsers(data.results)
         cardListeners(data.results)
+        searchContainer.addEventListener('keyup', () => {
+            filterSearchResults(searchInput.value.toLowerCase(), data.results);
+        })
     });
 
 function displayUsers(data) {
-    data.results.map(user => {
+    gallery.innerHTML = '';
+    data.map(user => {
         const galleryHTML = `
             <div class="card">
                 <div class="card-img-container">
@@ -28,6 +39,7 @@ function displayUsers(data) {
         gallery.insertAdjacentHTML('beforeend', galleryHTML)
     })
 }
+
  function cardListeners(data) {
     for (let i=0; i < cards.length; i++) {
         cards[i].addEventListener('click', () => {
@@ -35,8 +47,13 @@ function displayUsers(data) {
         })
     }
  }
+
  function displayModal(user) {
     console.log(user)
+    const cellNumb = user.cell;
+    const cellFormat = cellNumb.replace(/^(\(\d{3}\))-(\d{3})-(\d{4})$/ig, '$1 $2-$3')
+    const dob = user.dob.date;
+    const dobFormat = dob.replace(/^(\d{4})-(\d{2})-(\d{2}).*$/ig, '$2-$3-$1');
     const bodyHTML = `
     <div class="modal-container">
                 <div class="modal">
@@ -47,10 +64,10 @@ function displayUsers(data) {
                         <p class="modal-text">${user.email}</p>
                         <p class="modal-text cap">${user.location.city}</p>
                         <hr>
-                        <p class="modal-text">${user.cell}</p>
+                        <p class="modal-text">${cellFormat}</p>
                         <p class="modal-text">${user.location.street.number} ${user.location.street.name}, 
                             ${user.location.city}, ${user.location.state} ${user.location.postcode}</p>
-                        <p class="modal-text">Birthday: ${user.dob.date}</p>
+                        <p class="modal-text">Birthday: ${dobFormat}</p>
                     </div>
                 </div>`
     body.insertAdjacentHTML('beforeend', bodyHTML);
@@ -59,4 +76,17 @@ function displayUsers(data) {
     closeBtn.addEventListener('click', () => {
         modalContainer.remove();
     });
+ }
+
+ function filterSearchResults(input, users) {
+     const userArray = [];
+     users.filter(user => {
+         const fullName = `${user.name.first.toLowerCase()} ${user.name.last.toLowerCase()}`
+         if (fullName.includes(input)) {
+             userArray.push(user);
+         }
+         displayUsers(userArray);
+         cardListeners(userArray);
+         
+     })
  }
