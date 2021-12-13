@@ -3,6 +3,7 @@ const gallery = document.getElementById('gallery');
 const cards = document.getElementsByClassName('card');
 const body = document.querySelector('body');
 
+//add search bar to top of page
 const searchContainerHTML = `
     <form action="#" method="get">
         <input type="search" id="search-input" class="search-input" placeholder="Search...">
@@ -11,6 +12,7 @@ searchContainer.insertAdjacentHTML('beforeend', searchContainerHTML);
 
 const searchInput = document.getElementById('search-input');
 
+//fetch 12 ramdom users from api
 fetch ('https://randomuser.me/api/?results=12&nat=us')
     .then(res => res.json())
     .then(data => {
@@ -21,7 +23,7 @@ fetch ('https://randomuser.me/api/?results=12&nat=us')
         })
 
     });
-
+//display users in gallery
 function displayUsers(data) {
     gallery.innerHTML = '';
     data.map(user => {
@@ -43,15 +45,17 @@ function displayUsers(data) {
  function cardListeners(data) {
     for (let i=0; i < cards.length; i++) {
         cards[i].addEventListener('click', () => {
-            displayModal(data[i]);
+            displayModal(data[i], data);
         })
     }
  }
- 
- function displayModal(user) {
+
+ function displayModal(user, data) {
     const cellNumb = user.cell;
+    //use regex to format cell number to '(111) 111-1111'
     const cellFormat = cellNumb.replace(/^(\(\d{3}\))-(\d{3})-(\d{4})$/ig, '$1 $2-$3')
     const dob = user.dob.date;
+    //use regex to format birthday to 'mm/dd/yyyy'
     const dobFormat = dob.replace(/^(\d{4})-(\d{2})-(\d{2}).*$/ig, '$2-$3-$1');
     const bodyHTML = `
     <div class="modal-container">
@@ -76,10 +80,37 @@ function displayUsers(data) {
     </div>`
     body.insertAdjacentHTML('beforeend', bodyHTML);
 
+    //create event listeners for displayed modal
     const closeBtn = document.getElementById('modal-close-btn');
     closeBtn.addEventListener('click', () => {
         removeModal();
     });
+    const prevModal = document.getElementById('modal-prev');
+    const nextModal = document.getElementById('modal-next');
+    prevModal.addEventListener('click', () => {
+        switchModalPrev(user, data);
+    })
+    nextModal.addEventListener('click', () => {
+        switchModalNext(user, data);
+    })
+ }
+//display modal for previous user profile when 'prev' button is clicked
+ function switchModalPrev(user, data) {
+    let index = data.indexOf(user);
+    if (index > 0) {
+        removeModal();
+        index--;
+        displayModal(data[index], data);
+    }
+ }
+//display modal for next user profile when 'next' button is clicked
+ function switchModalNext(user, data) {
+     let index = data.indexOf(user);
+     if (index < data.length - 1) {
+        removeModal();
+        index++;
+        displayModal(data[index], data);
+     }
  }
 
  function removeModal() {
@@ -87,7 +118,7 @@ function displayUsers(data) {
     modalContainer.remove();
     
  }
-
+//pass new array of filtered users whose names include search input to displayUsers()
  function filterSearchResults(input, users) {
      const userArray = [];
      users.filter(user => {
