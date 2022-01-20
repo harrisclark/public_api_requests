@@ -120,13 +120,12 @@ function displayUsers(data) {
  }
 //pass new array of filtered users whose names include search input to displayUsers()
  function filterSearchResults(input, users) {
-     const userArray = [];
-     users.filter(user => {
-         const fullName = `${user.name.first.toLowerCase()} ${user.name.last.toLowerCase()}`
+     const userArray = users.filter(user => {
+         const fullName = `${user.name.first.toLowerCase()} ${user.name.last.toLowerCase()}`;
          if (fullName.includes(input)) {
-             userArray.push(user);
+             return user;
          }
-         displayUsers(userArray);
-         cardListeners(userArray);
-     })
+     });
+     displayUsers(userArray);
+     cardListeners(userArray);
  }
